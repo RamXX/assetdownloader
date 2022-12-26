@@ -1,0 +1,6 @@
+pandas
+yfinance
+sqlalchemy
+pandas_market_calendars
+psycopg2-binary
+pyarrow
