@@ -3,7 +3,7 @@
 ## Purpose
 This program was written to maintain a local Postgres database with OHLCV data for all stocks in the Russell 1000 and NASDAQ 100 indexes.
 
-The motivation to write this is not having to constantly rely on Yahoo! Finance to obtain historical data, increasing response time and decreasing API calls.
+The motivation to write this is not having to constantly relying on Yahoo! Finance to obtain historical data, increasing response time and decreasing API calls.
 
 ## Requirements
 
