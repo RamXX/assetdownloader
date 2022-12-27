@@ -58,7 +58,7 @@ for i in tickers:
         md = str(m)
         ts = pd.to_datetime(md) 
         d = ts.strftime('%Y-%m-%d')
-        if (nyse_schedule['market_close'][-1:].index > m):
+        if (nyse_schedule['market_close'][-2:].index > m)[0]:
             all_dates.append([d, i])
     except:
         all_dates.append([start_date, i])
