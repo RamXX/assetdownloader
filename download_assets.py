@@ -1,15 +1,28 @@
 import pandas as pd 
+import numpy as np
 from sqlalchemy import create_engine
 import yfinance as yf
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import pandas_market_calendars as mcal
-
+import warnings
 import creds as c
+
+warnings.simplefilter(action='ignore')
+
+def is_market_open():
+    nyse = mcal.get_calendar('NYSE')
+    start_date_nyse = date.today() - timedelta(days = 5)
+    end_date_nyse=date.today()
+    nyse_schedule = nyse.schedule(start_date=start_date_nyse, end_date=end_date_nyse)
+    now = np.datetime64(datetime.now())
+    ny = np.datetime64(nyse_schedule['market_close'][-1])
+    return (now <= ny)
 
 engine = create_engine(f"postgresql+psycopg2://{c.DBUSER}:{c.DBPW}@{c.DBHOST}/{c.DBNAME}")
 
-start_date = '2021-01-01'
+start_date_dl = '2021-01-01'
+end_date_dl = str(date.today()) if (not is_market_open()) else str(date.today() - timedelta(days = 1))
 
 #### Russell 1000
 R1000_filename="Russell_1000_list.gzip"
@@ -47,21 +60,16 @@ for i in inclusion:
 
 all_dates = []
 
-nyse = mcal.get_calendar('NYSE')
-start_date_nyse = date.today() - timedelta(days = 5)
-end_date_nyse=date.today()
-nyse_schedule = nyse.schedule(start_date=start_date_nyse, end_date=end_date_nyse)
-
 for i in tickers:
     try:
         m = pd.read_sql(f"SELECT MAX(\"Date\") FROM \"{i}\"", engine).values[0][0]
         md = str(m)
-        ts = pd.to_datetime(md) 
+        ts = pd.to_datetime(md) + timedelta(days=1)
         d = ts.strftime('%Y-%m-%d')
-        if (nyse_schedule['market_close'][-2:].index > m)[0]:
-            all_dates.append([d, i])
+        if (d != end_date_dl):
+            all_dates.append([d, i])            
     except:
-        all_dates.append([start_date, i])
+        all_dates.append([start_date_dl, i])
 
 all_downloads = defaultdict(list)
 for date, id in all_dates:
@@ -70,8 +78,8 @@ for date, id in all_dates:
 all_downloads = [[date, " ".join(ids)] for date, ids in all_downloads.items()]
 
 for sdate, ltickers in all_downloads:
-    print(f"Downloading market data for {ltickers} starting from {sdate}\n")
-    data = yf.download(tickers=ltickers, start=sdate)
+    print(f"Downloading market data for {ltickers} starting from {sdate} to {end_date_dl}\n")
+    data = yf.download(tickers=ltickers, start=sdate, end=end_date_dl)
     ftickers = ltickers.strip().split(" ")
     if (len(ftickers) > 1):
         for t in ftickers:           
