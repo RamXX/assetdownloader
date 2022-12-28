@@ -45,7 +45,7 @@ ticker_df = pd.concat([ticker_df['Ticker'], n100_ticker_df['Ticker']], ignore_in
 tickers = list(set(ticker_df.to_list()))
 
 #### Explicit inclusion or exclusion
-exclusion=['BF.A', 'HEI.A', 'LEN.B', 'BRK.B', 'BF.B']
+exclusion=['BF.A', 'HEI.A', 'LEN.B', 'BRK.B', 'BF.B', 'CLR', 'ZEN', 'SWCH']
 inclusion=['SPY']
 
 for i in exclusion:
@@ -62,8 +62,12 @@ all_dates = []
 
 for i in tickers:
     try:
-        m = pd.read_sql(f"SELECT MAX(\"Date\") FROM \"{i}\"", engine).values[0][0]
-        md = str(m)
+        m = pd.read_sql(f'SELECT * FROM "{i}" WHERE "Date" = (SELECT MAX("Date") FROM "{i}")', engine)
+        if (m["Close"].values[0] == None):
+            engine.execute(f'DELETE FROM "{i}" WHERE ("Open" IS NULL AND "High" IS NULL AND "Low" IS NULL AND "Close" IS NULL AND "Volume" IS NULL)')
+            m = pd.read_sql(f'SELECT * FROM "{i}" WHERE "Date" = (SELECT MAX("Date") FROM "{i}")', engine)
+            print(f"Deleting empty row for ticker {i}")
+        md = str(m["Date"].values[0])
         ts = pd.to_datetime(md) + timedelta(days=1)
         d = ts.strftime('%Y-%m-%d')
         if (d != end_date_dl):
