@@ -59,10 +59,11 @@ all_dates = []
 
 for i in tickers:
     try:
-        m = pd.read_sql(f'SELECT * FROM "{i}" WHERE "Date" = (SELECT MAX("Date") FROM "{i}")', engine)
+        p = i.replace('^', 'IX-')
+        m = pd.read_sql(f'SELECT * FROM "{p}" WHERE "Date" = (SELECT MAX("Date") FROM "{p}")', engine)
         if (m["Close"].values[0] == None):
-            engine.execute(f'DELETE FROM "{i}" WHERE ("Open" IS NULL AND "High" IS NULL AND "Low" IS NULL AND "Close" IS NULL AND "Volume" IS NULL)')
-            m = pd.read_sql(f'SELECT * FROM "{i}" WHERE "Date" = (SELECT MAX("Date") FROM "{i}")', engine)
+            engine.execute(f'DELETE FROM "{p}" WHERE ("Open" IS NULL AND "High" IS NULL AND "Low" IS NULL AND "Close" IS NULL AND "Volume" IS NULL)')
+            m = pd.read_sql(f'SELECT * FROM "{p}" WHERE "Date" = (SELECT MAX("Date") FROM "{p}")', engine)
             print(f"Deleting empty row for ticker {i}")
         md = str(m["Date"].values[0])
         ts = pd.to_datetime(md) + timedelta(days=1)
@@ -78,12 +79,14 @@ for date, id in all_dates:
 
 all_downloads = [[date, " ".join(ids)] for date, ids in all_downloads.items()]
 
+# all_close = pd.DataFrame()
+
 for sdate, ltickers in all_downloads:
     print(f"Downloading market data for {ltickers} starting from {sdate} to {end_date_dl}\n")
     data = yf.download(tickers=ltickers, start=sdate, end=end_date_dl)
     ftickers = ltickers.strip().split(" ")
     if (len(ftickers) > 1):
-        for t in ftickers:           
+        for t in ftickers:          
                 o = data['Open'][t]
                 of = o.to_frame(name='Open')
 
@@ -100,7 +103,9 @@ for sdate, ltickers in all_downloads:
                 vof = vo.to_frame(name='Volume')
 
                 df = pd.concat([of, hif, lof, acf, vof], axis=1)
-                df.to_sql(t, engine, if_exists='append')
+                # all_close = pd.concat([all_close, acf], axis=1)
+                # all_close.set_axis([*all_close.columns[:-1], t], axis=1, inplace=True)
+                df.to_sql(t.replace('^', 'IX-'), engine, if_exists='append')
     else:
         o = data['Open']
         of = o.to_frame(name='Open')
@@ -118,4 +123,6 @@ for sdate, ltickers in all_downloads:
         vof = vo.to_frame(name='Volume')
 
         df = pd.concat([of, hif, lof, acf, vof], axis=1)
-        df.to_sql(ltickers, engine, if_exists='append')
+        # all_close = pd.concat([all_close, acf], axis=1)
+        # all_close.set_axis([*all_close.columns[:-1], ltickers], axis=1, inplace=True)
+        df.to_sql(ltickers.replace('^', 'IX-'), engine, if_exists='append')

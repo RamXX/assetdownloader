@@ -16,6 +16,8 @@ The program can be placed on a cron job to be executed after market close daily 
 
 There are two lists that can be updated manually, `exclusion` and `inclusion`, where specific tickers that you may want to exclude or include should be placed. The lists are kept in a separate file, `handpicks.py`, for easy updating.
 
+Indexes are now supported in inclusion/exclusion lists, but the table names in Postgres cannot have special characters, so while you can add '^DJI' to the inclusion list, the table name will be 'IX-DJI'.
+
 Additionally, a `creds.py` file needs to be present in this directory with the connection details for the database. See `creds-example.py` as an example.
 
 Two data files are included here, `NASDAQ_100_list.gzip` and `Russell_1000_list.gzip` which contains the current list of assets in each one of those indexes as detailed in their respective Wikipedia page. In order to refresh the list, delete the files. The program will re-generate them in the next run with updated data.
