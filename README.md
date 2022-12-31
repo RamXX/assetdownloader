@@ -14,7 +14,7 @@ The program only downloads OHLCV data, not other financial information that coul
 
 The program can be placed on a cron job to be executed after market close daily in order to keep an up-to-date database, provided all the dependencies are installed.
 
-There are two lists that can be updated manually, `exclusion` and `inclusion`, where specific tickers that you may want to exclude or include should be placed.
+There are two lists that can be updated manually, `exclusion` and `inclusion`, where specific tickers that you may want to exclude or include should be placed. The lists are kept in a separate file, `handpicks.py`, for easy updating.
 
 Additionally, a `creds.py` file needs to be present in this directory with the connection details for the database. See `creds-example.py` as an example.
 

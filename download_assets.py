@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 import yfinance as yf
 from collections import defaultdict
 from datetime import date, timedelta, datetime
+from handpicks import exclusion, inclusion
 import pandas_market_calendars as mcal
 import warnings
 import creds as c
@@ -43,10 +44,6 @@ except:
 
 ticker_df = pd.concat([ticker_df['Ticker'], n100_ticker_df['Ticker']], ignore_index=True)
 tickers = list(set(ticker_df.to_list()))
-
-#### Explicit inclusion or exclusion
-exclusion=['BF.A', 'HEI.A', 'LEN.B', 'BRK.B', 'BF.B', 'CLR', 'ZEN', 'SWCH']
-inclusion=['SPY']
 
 for i in exclusion:
     try:
