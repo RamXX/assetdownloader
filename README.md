@@ -22,6 +22,8 @@ Additionally, a `creds.py` file needs to be present in this directory with the c
 
 Two data files are included here, `NASDAQ_100_list.gzip` and `Russell_1000_list.gzip` which contains the current list of assets in each one of those indexes as detailed in their respective Wikipedia page. In order to refresh the list, delete the files. The program will re-generate them in the next run with updated data.
 
+The `all_close.pk.gzip` file is a Parquet file containing all adjusted close information for all assets in the tickers list. It gets recreated every time there is a new set of updated prices. A Parquet file was chosen given that the number of columns exceeds the Postgres limits.
+
 ## Installation
 
 ```

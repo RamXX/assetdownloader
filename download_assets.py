@@ -79,8 +79,6 @@ for date, id in all_dates:
 
 all_downloads = [[date, " ".join(ids)] for date, ids in all_downloads.items()]
 
-# all_close = pd.DataFrame()
-
 for sdate, ltickers in all_downloads:
     print(f"Downloading market data for {ltickers} starting from {sdate} to {end_date_dl}\n")
     data = yf.download(tickers=ltickers, start=sdate, end=end_date_dl)
@@ -103,8 +101,6 @@ for sdate, ltickers in all_downloads:
                 vof = vo.to_frame(name='Volume')
 
                 df = pd.concat([of, hif, lof, acf, vof], axis=1)
-                # all_close = pd.concat([all_close, acf], axis=1)
-                # all_close.set_axis([*all_close.columns[:-1], t], axis=1, inplace=True)
                 df.to_sql(t.replace('^', 'IX-'), engine, if_exists='append')
     else:
         o = data['Open']
@@ -123,6 +119,16 @@ for sdate, ltickers in all_downloads:
         vof = vo.to_frame(name='Volume')
 
         df = pd.concat([of, hif, lof, acf, vof], axis=1)
-        # all_close = pd.concat([all_close, acf], axis=1)
-        # all_close.set_axis([*all_close.columns[:-1], ltickers], axis=1, inplace=True)
         df.to_sql(ltickers.replace('^', 'IX-'), engine, if_exists='append')
+
+if (len(all_downloads) > 0):
+    all_close = pd.DataFrame()
+    for i in tickers:
+        t = i.replace('^', 'IX-')
+        m = pd.read_sql(f'SELECT "Date", "Close" FROM "{t}" WHERE "Date" >= \'{start_date_dl}\'', engine)
+        m['Date'] = pd.to_datetime(m['Date'], format='%Y-%m-%d')
+        m.set_index('Date', inplace=True)
+        all_close = pd.concat([all_close, m], axis=1)
+        all_close.set_axis([*all_close.columns[:-1], t], axis=1, inplace=True)
+        
+    all_close.to_parquet("all_close.pk.gzip", compression='gzip')
