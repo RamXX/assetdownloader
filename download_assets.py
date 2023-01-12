@@ -74,10 +74,10 @@ for i in tickers:
         all_dates.append([start_date_dl, i])
 
 all_downloads = defaultdict(list)
-for date, id in all_dates:
-    all_downloads[date].append(id)
+for dt, id in all_dates:
+    all_downloads[dt].append(id)
 
-all_downloads = [[date, " ".join(ids)] for date, ids in all_downloads.items()]
+all_downloads = [[dt, " ".join(ids)] for dt, ids in all_downloads.items()]
 
 for sdate, ltickers in all_downloads:
     print(f"Downloading market data for {ltickers} starting from {sdate} to {end_date_dl}\n")
@@ -125,7 +125,7 @@ if (len(all_downloads) > 0):
     all_close = pd.DataFrame()
     for i in tickers:
         t = i.replace('^', 'IX-')
-        m = pd.read_sql(f'SELECT "Date", "Close" FROM "{t}" WHERE "Date" >= \'{start_date_dl}\'', engine)
+        m = pd.read_sql(f'SELECT "Date", "Close" FROM "{t}" WHERE "Date" >= \'{start_date_dl}\' ORDER BY \'{start_date_dl}\'', engine)
         m['Date'] = pd.to_datetime(m['Date'], format='%Y-%m-%d')
         m.set_index('Date', inplace=True)
         all_close = pd.concat([all_close, m], axis=1)
