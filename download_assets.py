@@ -22,7 +22,7 @@ def is_market_open():
 
 engine = create_engine(f"postgresql+psycopg2://{c.DBUSER}:{c.DBPW}@{c.DBHOST}/{c.DBNAME}")
 
-start_date_dl = '2021-01-01'
+start_date_dl = '2015-01-01'
 end_date_dl = str(date.today()) if (not is_market_open()) else str(date.today() - timedelta(days = 1))
 
 #### Russell 1000
@@ -121,14 +121,20 @@ for sdate, ltickers in all_downloads:
         df = pd.concat([of, hif, lof, acf, vof], axis=1)
         df.to_sql(ltickers.replace('^', 'IX-'), engine, if_exists='append')
 
-if (len(all_downloads) > 0):
-    all_close = pd.DataFrame()
-    for i in tickers:
-        t = i.replace('^', 'IX-')
+all_close = pd.DataFrame()
+for i in tickers:
+    t = i.replace('^', 'IX-')
+    try:
         m = pd.read_sql(f'SELECT "Date", "Close" FROM "{t}" WHERE "Date" >= \'{start_date_dl}\' ORDER BY "Date"', engine)
-        m['Date'] = pd.to_datetime(m['Date'], format='%Y-%m-%d')
-        m.set_index('Date', inplace=True)
-        all_close = pd.concat([all_close, m], axis=1)
-        all_close.set_axis([*all_close.columns[:-1], t], axis=1, inplace=True)
-        
-    all_close.to_parquet("all_close.pk.gzip", compression='gzip')
+    except:
+        print(f'Error reading DB for symbol {t}')
+        exit
+    m['Date'] = pd.to_datetime(m['Date'], format='%Y-%m-%d')
+    m.set_index('Date', inplace=True)
+    try:
+        all_close = pd.concat([all_close, m], axis=1) if len(all_close) > 0 else m
+    except:
+        pass
+    all_close.set_axis([*all_close.columns[:-1], t], axis=1, inplace=True)
+    
+all_close.to_parquet("all_close.pk.gzip", compression='gzip')
