@@ -125,7 +125,7 @@ if (len(all_downloads) > 0):
     all_close = pd.DataFrame()
     for i in tickers:
         t = i.replace('^', 'IX-')
-        m = pd.read_sql(f'SELECT "Date", "Close" FROM "{t}" WHERE "Date" >= \'{start_date_dl}\' ORDER BY \'{start_date_dl}\'', engine)
+        m = pd.read_sql(f'SELECT "Date", "Close" FROM "{t}" WHERE "Date" >= \'{start_date_dl}\' ORDER BY "Date"', engine)
         m['Date'] = pd.to_datetime(m['Date'], format='%Y-%m-%d')
         m.set_index('Date', inplace=True)
         all_close = pd.concat([all_close, m], axis=1)
