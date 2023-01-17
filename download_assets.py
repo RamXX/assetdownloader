@@ -61,10 +61,18 @@ for i in tickers:
     try:
         p = i.replace('^', 'IX-')
         m = pd.read_sql(f'SELECT * FROM "{p}" WHERE "Date" = (SELECT MAX("Date") FROM "{p}")', engine)
+        
         if (m["Close"].values[0] == None):
             engine.execute(f'DELETE FROM "{p}" WHERE ("Open" IS NULL AND "High" IS NULL AND "Low" IS NULL AND "Close" IS NULL AND "Volume" IS NULL)')
             m = pd.read_sql(f'SELECT * FROM "{p}" WHERE "Date" = (SELECT MAX("Date") FROM "{p}")', engine)
             print(f"Deleting empty row for ticker {i}")
+        
+        if m.shape[0] > 1:
+            for j in range(m.shape[0] - 1):
+                engine.execute(f'DELETE FROM "{p}" WHERE ("Open" = {m["Open"][j]} AND "High" = {m["High"][j]} AND "Low" = {m["Low"][j]} AND "Close" = {m["Close"][j]} AND "Volume" = {m["Volume"][j]})')
+                m = pd.read_sql(f'SELECT * FROM "{p}" WHERE "Date" = (SELECT MAX("Date") FROM "{p}")', engine)
+                print(f"Deleting duplicate last row for ticker {i}")
+        
         md = str(m["Date"].values[0])
         ts = pd.to_datetime(md) + timedelta(days=1)
         d = ts.strftime('%Y-%m-%d')
