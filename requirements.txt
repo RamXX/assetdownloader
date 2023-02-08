@@ -1,6 +1,6 @@
 pandas
 yfinance
-sqlalchemy
+sqlalchemy==1.4.46
 pandas_market_calendars
 psycopg2-binary
 pyarrow
