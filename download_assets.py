@@ -44,6 +44,7 @@ except:
 
 ticker_df = pd.concat([ticker_df['Ticker'], n100_ticker_df['Ticker']], ignore_index=True)
 tickers = list(set(ticker_df.to_list()))
+tickers = [s.replace('.', '-') for s in tickers]
 
 for i in exclusion:
     try:

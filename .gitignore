@@ -132,10 +132,7 @@ dmypy.json
 creds.py
 
 # Test environment
-Tester.ipynb
+*.ipynb
 
 # Generated data files
 *.gzip
-all_close.pk.gzip
-NASDAQ_100_list.gzip
-Russell_1000_list.gzip
