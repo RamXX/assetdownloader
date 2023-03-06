@@ -11,20 +11,20 @@ import creds as c
 
 warnings.simplefilter(action='ignore')
 
-def is_market_open():
-    nyse = mcal.get_calendar('NYSE')
-    start_date_nyse = date.today() - timedelta(days = 5)
-    end_date_nyse=date.today()
-    nyse_schedule = nyse.schedule(start_date=start_date_nyse, end_date=end_date_nyse)
-    now = np.datetime64(datetime.now())
-    ny = np.datetime64(nyse_schedule['market_close'][-1])
-    return (now <= ny)
-
 engine = create_engine(f"postgresql+psycopg2://{c.DBUSER}:{c.DBPW}@{c.DBHOST}/{c.DBNAME}")
 
-start_date_dl = '2015-01-01'
-end_date_dl = str(date.today()) if (not is_market_open()) else str(date.today() - timedelta(days = 1))
+engine = create_engine(f"postgresql+psycopg2://{c.DBUSER}:{c.DBPW}@{c.DBHOST}/{c.DBNAME}")
+nyse = mcal.get_calendar('NYSE')
+start_date_nyse = date.today() - timedelta(days = 7)
+end_date_nyse=date.today()
+nyse_schedule = nyse.schedule(start_date=start_date_nyse, end_date=end_date_nyse)
 
+start_date_dl = '2015-01-01'
+if nyse.is_open_now(nyse_schedule):
+    end_date_dl = pd.to_datetime(nyse_schedule[-2:-1].index[0]).strftime('%Y-%m-%d')
+else:
+    end_date_dl = pd.to_datetime(nyse_schedule[-1:].index[0]).strftime('%Y-%m-%d')
+    
 #### Russell 1000
 R1000_filename="Russell_1000_list.gzip"
 
