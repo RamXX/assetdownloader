@@ -8,11 +8,11 @@ from handpicks import exclusion, inclusion
 import pandas_market_calendars as mcal
 import warnings
 import creds as c
+import pytz
 
 warnings.simplefilter(action='ignore')
 
-engine = create_engine(f"postgresql+psycopg2://{c.DBUSER}:{c.DBPW}@{c.DBHOST}/{c.DBNAME}")
-
+utc=pytz.UTC
 engine = create_engine(f"postgresql+psycopg2://{c.DBUSER}:{c.DBPW}@{c.DBHOST}/{c.DBNAME}")
 nyse = mcal.get_calendar('NYSE')
 start_date_nyse = date.today() - timedelta(days = 7)
@@ -20,7 +20,7 @@ end_date_nyse=date.today()
 nyse_schedule = nyse.schedule(start_date=start_date_nyse, end_date=end_date_nyse)
 
 start_date_dl = '2015-01-01'
-if nyse.is_open_now(nyse_schedule):
+if (utc.localize(pd.Timestamp.now()) <= nyse_schedule[-1:]['market_close'][0]):
     end_date_dl = pd.to_datetime(nyse_schedule[-2:-1].index[0]).strftime('%Y-%m-%d')
 else:
     end_date_dl = pd.to_datetime(nyse_schedule[-1:].index[0]).strftime('%Y-%m-%d')
