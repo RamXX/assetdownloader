@@ -1,4 +1,4 @@
-pandas
+pandas==1.5.3
 yfinance
 sqlalchemy==1.4.46
 pandas_market_calendars

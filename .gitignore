@@ -136,3 +136,6 @@ creds.py
 
 # Generated data files
 *.gzip
+
+# Other files
+mypicks.csv

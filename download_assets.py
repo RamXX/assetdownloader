@@ -42,7 +42,13 @@ except:
     n100_ticker_df = pd.read_html("https://en.wikipedia.org/wiki/Nasdaq-100")[4]
     n100_ticker_df.to_parquet(N100_filename, compression="gzip")
 
-ticker_df = pd.concat([ticker_df['Ticker'], n100_ticker_df['Ticker']], ignore_index=True)
+try:
+    extra = pd.read_csv('./mypicks.csv')['Ticker'] # Custom list of stocks I want to download, CSV 1 column labeled 'Ticker'
+except:
+    extra = pd.Series([])
+
+
+ticker_df = pd.concat([ticker_df['Ticker'], n100_ticker_df['Ticker'], extra], ignore_index=True)
 tickers = list(set(ticker_df.to_list()))
 tickers = [s.replace('.', '-') for s in tickers]
 
@@ -90,7 +96,7 @@ all_downloads = [[dt, " ".join(ids)] for dt, ids in all_downloads.items()]
 
 for sdate, ltickers in all_downloads:
     print(f"Downloading market data for {ltickers} starting from {sdate} to {end_date_dl}\n")
-    data = yf.download(tickers=ltickers, start=sdate, end=end_date_dl)
+    data = yf.download(tickers=ltickers, start=sdate, end=end_date_dl, repair=True)
     ftickers = ltickers.strip().split(" ")
     if (len(ftickers) > 1):
         for t in ftickers:          
