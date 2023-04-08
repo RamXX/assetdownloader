@@ -1,7 +1,7 @@
 # Assets Downloader
 
 ## Purpose
-This program was written to maintain a local Postgres database with OHLCV data for all stocks in the Russell 1000 and NASDAQ 100 indexes.
+This program was written to maintain a local Postgres database with OHLCV data in the daily timeframe for all stocks in the Russell 1000 and NASDAQ 100 indexes.
 
 The motivation to write this is not having to constantly relying on Yahoo! Finance to obtain historical data, increasing response time and decreasing API calls.
 
@@ -10,11 +10,11 @@ The motivation to write this is not having to constantly relying on Yahoo! Finan
 A Postgres database must be running in the host specified in the `creds.py` file. Proper access controls for the running user is expected to be fully functional.
 
 ## Defaults
-The program only downloads OHLCV data, not other financial information that could be useful in different models. It defaults to data from January 1st, 2021 and newer, which can be changed in the `start_date` variable.
+The program only downloads OHLCV data, not other financial information that could be useful in different models. It defaults to data from January 1st, 2015 and newer, which can be changed in the `start_date` variable.
 
 The program can be placed on a cron job to be executed after market close daily in order to keep an up-to-date database, provided all the dependencies are installed.
 
-There are two lists that can be updated manually, `exclusion` and `inclusion`, where specific tickers that you may want to exclude or include should be placed. The lists are kept in a separate file, `handpicks.py`, for easy updating.
+There are two lists that can be updated manually, `exclusion` and `inclusion`, where specific tickers that you may want to exclude or include should be placed. The lists are kept in a separate file, `handpicks.py`, for easy updating. Additionally, you can have a `mypicks.csv` file in the running directory with a single column labeled 'Tickers' and a list of your tickers. This works with StockRover CSV output.
 
 Indexes are now supported in inclusion/exclusion lists, but the table names in Postgres cannot have special characters, so while you can add '^DJI' to the inclusion list, the table name will be 'IX-DJI'.
 
@@ -40,7 +40,9 @@ python3 ./download_assets.py
 
 ## Caveats
 
-There is currently no test coverage, and very little error handling.
+There is currently no test coverage, and very little error handling. The `yfinance` download function sometimes just fails obtaining ticker data dor some symbols for no apparent reason. The only solution is to run the program again, which will cleanup the previous run and download only what's missing. 
+
+You should also run this on a virtual environment if possible, given some of the libraries had to be kept at a specifc version.
 
 ## Disclaimer
 
