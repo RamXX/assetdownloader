@@ -96,7 +96,7 @@ all_downloads = [[dt, " ".join(ids)] for dt, ids in all_downloads.items()]
 
 for sdate, ltickers in all_downloads:
     print(f"Downloading market data for {ltickers} starting from {sdate} to {end_date_dl}\n")
-    data = yf.download(tickers=ltickers, start=sdate, end=end_date_dl, repair=True)
+    data = yf.download(tickers=ltickers, start=sdate, end=end_date_dl, interval='1d', repair=True)
     ftickers = ltickers.strip().split(" ")
     if (len(ftickers) > 1):
         for t in ftickers:          
