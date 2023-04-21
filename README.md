@@ -1,7 +1,7 @@
 # Assets Downloader
 
 ## Purpose
-This program was written to maintain a local Postgres database with OHLCV data in the daily timeframe for all stocks in the Russell 1000 and NASDAQ 100 indexes.
+This program was written to maintain a local Postgres database with OHLCV data in the daily timeframe for all stocks in the Russell 1000, Dow Jones Industrial, and NASDAQ 100 indexes.
 
 The motivation to write this is not having to constantly relying on Yahoo! Finance to obtain historical data, increasing response time and decreasing API calls.
 
@@ -20,7 +20,7 @@ Indexes are now supported in inclusion/exclusion lists, but the table names in P
 
 Additionally, a `creds.py` file needs to be present in this directory with the connection details for the database. See `creds-example.py` as an example.
 
-Two data files are included here, `NASDAQ_100_list.gzip` and `Russell_1000_list.gzip` which contains the current list of assets in each one of those indexes as detailed in their respective Wikipedia page. In order to refresh the list, delete the files. The program will re-generate them in the next run with updated data.
+Three data files will be generated, `DJI_list.gzip`, `NASDAQ_100_list.gzip` and `Russell_1000_list.gzip` which contains the current list of assets in each one of those indexes as detailed in their respective Wikipedia page. In order to refresh the list, delete the files. The program will re-generate them in the next run with updated data.
 
 The `all_close.pk.gzip` file is a Parquet file containing all adjusted close information for all assets in the tickers list. It gets recreated every time there is a new set of updated prices. A Parquet file was chosen given that the number of columns exceeds the Postgres limits.
 

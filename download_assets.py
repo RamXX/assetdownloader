@@ -29,10 +29,19 @@ else:
 R1000_filename="Russell_1000_list.gzip"
 
 try:
-    ticker_df = pd.read_parquet(R1000_filename)
+    r1000_ticker_df = pd.read_parquet(R1000_filename)
 except:
-    ticker_df = pd.read_html("https://en.wikipedia.org/wiki/Russell_1000_Index")[2]
-    ticker_df.to_parquet(R1000_filename, compression="gzip")
+    r1000_ticker_df = pd.read_html("https://en.wikipedia.org/wiki/Russell_1000_Index")[2]
+    r1000_ticker_df.to_parquet(R1000_filename, compression="gzip")
+
+#### Dow Jones
+DJI_filename="DJI_list.gzip"
+
+try:
+    dji_ticker_df = pd.read_parquet(DJI_filename)
+except:
+    dji_ticker_df = pd.read_html("https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average")[1]
+    dji_ticker_df.to_parquet(DJI_filename, compression="gzip")
 
 #### NASDAQ 100
 N100_filename = "NASDAQ_100_list.gzip"
@@ -43,12 +52,12 @@ except:
     n100_ticker_df.to_parquet(N100_filename, compression="gzip")
 
 try:
-    extra = pd.read_csv('./mypicks.csv')['Ticker'] # Custom list of stocks I want to download, CSV 1 column labeled 'Ticker'
+    extra = pd.read_csv('./Watchlist-PotentialPortfolio.csv')['Ticker']
 except:
     extra = pd.Series([])
 
 
-ticker_df = pd.concat([ticker_df['Ticker'], n100_ticker_df['Ticker'], extra], ignore_index=True)
+ticker_df = pd.concat([r1000_ticker_df['Ticker'], dji_ticker_df['Symbol'], n100_ticker_df['Ticker'], extra], ignore_index=True)
 tickers = list(set(ticker_df.to_list()))
 tickers = [s.replace('.', '-') for s in tickers]
 
