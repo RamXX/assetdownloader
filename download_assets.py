@@ -52,7 +52,7 @@ except:
     n100_ticker_df.to_parquet(N100_filename, compression="gzip")
 
 try:
-    extra = pd.read_csv('./Watchlist-PotentialPortfolio.csv')['Ticker']
+    extra = pd.read_csv('./mypicks.csv')['Ticker']
 except:
     extra = pd.Series([])
 
