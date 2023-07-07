@@ -138,4 +138,4 @@ creds.py
 *.gzip
 
 # Other files
-mypicks.csv
+mypicks*.csv

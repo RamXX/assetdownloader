@@ -53,6 +53,8 @@ except:
 
 try:
     extra = pd.read_csv('./mypicks.csv')['Ticker']
+    if extra[-1:].values[0] == 'Summary':
+        extra = extra[:-1]
 except:
     extra = pd.Series([])
 
