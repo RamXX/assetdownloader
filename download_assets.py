@@ -13,7 +13,16 @@ import pytz
 warnings.simplefilter(action='ignore')
 
 utc=pytz.UTC
-engine = create_engine(f"postgresql+psycopg2://{c.DBUSER}:{c.DBPW}@{c.DBHOST}/{c.DBNAME}")
+engine = create_engine(f"postgresql+psycopg2://{c.DBUSER}:{c.DBPW}@{c.DBHOST}:{c.PORT}/{c.DBNAME}")
+
+try:
+    with engine.connect() as connection:
+        result = connection.execute("SELECT NOW()")
+        current_timestamp = result.scalar()
+        print("Connected to the database successfully. Current timestamp:", current_timestamp)
+except Exception as e:
+    print("Error connecting to the database:", str(e))
+
 nyse = mcal.get_calendar('NYSE')
 start_date_nyse = date.today() - timedelta(days = 7)
 end_date_nyse=date.today()

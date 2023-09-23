@@ -7,7 +7,7 @@ The motivation to write this is not having to constantly relying on Yahoo! Finan
 
 ## Requirements
 
-A Postgres database must be running in the host specified in the `creds.py` file. Proper access controls for the running user is expected to be fully functional.
+A Postgres database must be running in the host specified in the `creds.py` file (a `creds-example.py` file is provided). Proper access controls for the running user is expected to be fully functional.
 
 ## Defaults
 The program only downloads OHLCV data, not other financial information that could be useful in different models. It defaults to data from January 1st, 2015 and newer, which can be changed in the `start_date` variable.

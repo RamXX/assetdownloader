@@ -1,2 +1,2 @@
-exclusion=['CLR', 'ZEN', 'SWCH', 'STOR', 'COUP', 'IAA', 'SGFY', 'OSH']
-inclusion=['SPY', '^DJI', '^GSPC', '^IXIC', '^NYA', '^RUI', 'BIL', 'TLT', 'IAU', 'SIL', 'VIXY']
+exclusion=['CLR', 'ZEN', 'SWCH', 'STOR', 'COUP', 'IAA', 'SGFY', 'OSH', 'UNVR', 'BKI', 'WWE']
+inclusion=['SPY', '^DJI', '^GSPC', '^IXIC', '^NYA', '^RUI', 'BIL', 'TLT', 'IAU', 'SIL', 'VIXY', 'ABBV', 'ES', 'AEP', 'AFG', 'AMT', 'ELV', 'CPB', 'ADSK', 'UNH', 'AMGN', 'XEL', 'TGT', 'TMO', 'ADBE']
