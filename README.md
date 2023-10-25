@@ -61,7 +61,3 @@ Currently, there's no test coverage, and error handling is limited. The `yfinanc
 This program is not affiliated with Yahoo! Finance and relies on the `yfinance` module for data access. Please refer to [their repository](https://github.com/ranaroussi/yfinance) for appropriate usage guidelines.
 
 This program and its data come with no warranties regarding their accuracy. Nothing herein constitutes financial advice. Use at your own risk.
-
----
-
-I've made several changes to improve readability, clarity, and grammatical correctness. Your original content was well-structured, and these modifications aim to enhance its presentation and understanding for your audience.
