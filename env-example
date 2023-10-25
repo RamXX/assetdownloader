@@ -1,5 +1,5 @@
 DBHOST='127.0.0.1'
 DBNAME='assets'
-DBUSER='myuser'
+DBUSER='mydbuser'
 DBPW='mypassword'
-PORT='5433'
+DBPORT='5432'
