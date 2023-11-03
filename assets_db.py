@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import io
 import pytz
+import csv
 
 warnings.simplefilter(action='ignore')
 
@@ -81,11 +82,11 @@ def init_db():
     dbport = os.environ["DBPORT"]
     dbname = os.environ["DBNAME"]
 
-    engine = psycopg2.connect(database='postgres', user=dbuser, password=dbpw, host=dbhost, port=dbport)
-    engine.autocommit = True 
+    conn = psycopg2.connect(database='postgres', user=dbuser, password=dbpw, host=dbhost, port=dbport)
+    conn.autocommit = True 
 
     try:
-        with engine.cursor() as cursor:
+        with conn.cursor() as cursor:
             cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s;"), (dbname,))
             exists = cursor.fetchone()
             if not exists:
@@ -93,24 +94,24 @@ def init_db():
                 print(f"Database {dbname} created successfully.")
     except Exception as e:
         print(f"Error: {str(e)}")
-        engine.close()
+        conn.close()
         quit(1)
 
-    engine.close()
+    conn.close()
 
-    engine = psycopg2.connect(database=dbname, user=dbuser, password=dbpw, host=dbhost, port=dbport)
-    engine.autocommit = True  
+    conn = psycopg2.connect(database=dbname, user=dbuser, password=dbpw, host=dbhost, port=dbport)
+    conn.autocommit = True  
     try:
-        with engine.cursor() as cursor:
+        with conn.cursor() as cursor:
             cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
-            # print("TimescaleDB extension loaded successfully.")
+            print("TimescaleDB extension loaded successfully.")
     except Exception as e:
         print(f"Error: {str(e)}")
-        engine.close()
+        conn.close()
         quit(1)
     
     try:
-        with engine.cursor() as cursor:
+        with conn.cursor() as cursor:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS stock_data (
                     timestamp DATE NOT NULL,
@@ -122,10 +123,17 @@ def init_db():
                     volume BIGINT NOT NULL,
                     UNIQUE (timestamp, ticker)
                 );
-                CREATE TABLE IF NOT EXISTS ticker_log (
-                log_entry DATE NOT NULL,
-                ticker TEXT NOT NULL,
-                added BOOLEAN NOT NULL
+                CREATE TABLE IF NOT EXISTS mypicks (
+                    id SERIAL PRIMARY KEY,
+                    ticker VARCHAR(10) UNIQUE NOT NULL,
+                    date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    date_removed TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS mypicks_history (
+                    id SERIAL PRIMARY KEY,
+                    ticker VARCHAR(10) NOT NULL,
+                    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    action VARCHAR(10) NOT NULL
                 );
             """)
             cursor.execute("""
@@ -140,14 +148,13 @@ def init_db():
                 """)
                 print("Hypertable stock_data created successfully.")
             else:
-                # print("Hypertable stock_data already exists.")
-                pass
+                print("Hypertable stock_data already exists.")
     except Exception as e:
         print(f"Error: {str(e)}")
-        engine.close()
+        conn.close()
         quit(1)
         
-    return engine
+    return conn
 
 
 def close_db(conn):
@@ -155,6 +162,56 @@ def close_db(conn):
     Closes the DB connection. Useful wrapper if we every change the DB.
     """
     conn.close()
+
+
+def process_csv_and_update_db(conn):
+    """ 
+    Process the 'mypicks.csv' file and keep a record of changes in the DB.
+    """
+
+    def get_file_creation_time(filepath):
+        """
+        Returns the timestamp with the creation date of the file being passed.
+        """
+        timestamp = os.path.getctime(filepath)
+        return datetime.fromtimestamp(timestamp)
+
+    cur = conn.cursor()
+    file_creation_time = get_file_creation_time('mypicks.csv')
+
+    with open('mypicks.csv', newline='', encoding='utf-8') as csvfile:
+        csv_reader = csv.reader(csvfile)
+        headers = next(csv_reader)
+        tickers_from_csv = {row[0] for row in csv_reader if row[0] != 'Summary'}
+
+    cur.execute("SELECT ticker FROM mypicks WHERE date_removed IS NULL;")
+    tickers_from_db = {row[0] for row in cur.fetchall()}
+
+    new_tickers = tickers_from_csv - tickers_from_db
+    removed_tickers = tickers_from_db - tickers_from_csv
+
+    for ticker in new_tickers:
+        cur.execute(
+            "INSERT INTO mypicks (ticker, date_added) VALUES (%s, %s);",
+            (ticker, file_creation_time)
+        )
+        cur.execute(
+            "INSERT INTO mypicks_history (ticker, action, date) VALUES (%s, 'Added', %s);",
+            (ticker, file_creation_time)
+        )
+    
+    for ticker in removed_tickers:
+        cur.execute(
+            "UPDATE mypicks SET date_removed=%s WHERE ticker=%s;",
+            (file_creation_time, ticker)
+        )
+        cur.execute(
+            "INSERT INTO mypicks_history (ticker, action, date) VALUES (%s, 'Removed', %s);",
+            (ticker, file_creation_time)
+        )
+    
+    cur.close()
+
 
 
 def get_last_entry_date(ticker, conn):
@@ -421,6 +478,8 @@ def update_db(conn, download_lists):
             cur.copy_from(buffer, 'stock_data', columns=('timestamp', 'ticker', 'open', 'high', 'low', 'close', 'volume'), sep=',')
             conn.commit()
             cur.close()
+    
+    process_csv_and_update_db(conn)
     return
 
 
