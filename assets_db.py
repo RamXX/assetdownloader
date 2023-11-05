@@ -56,19 +56,23 @@ def market_status(nyse):
     """ 
     Returns 'open' or 'closed' depending on the NYSE market status right now.
     """
-    now = datetime.now()
+    now = datetime.utcnow() 
     schedule = nyse.schedule(start_date=now.date(), end_date=now.date())
-    is_open = mcal.date_range(schedule, frequency='1T').tz_convert('UTC').tz_localize(None)
-    if is_open.empty:
+    
+    if schedule.empty:
         ms = "closed"
     else:
+        is_open = mcal.date_range(schedule, frequency='1T')
         market_open = is_open.min().to_pydatetime()
         market_close = is_open.max().to_pydatetime()
+        
         if market_open <= now <= market_close:
             ms = "open"
         else:
             ms = "closed"
+    
     return ms
+
 
 def init_db():
     """
