@@ -196,7 +196,10 @@ def process_csv_and_update_db(conn):
 
     for ticker in new_tickers:
         cur.execute(
-            "INSERT INTO mypicks (ticker, date_added) VALUES (%s, %s);",
+            """
+            INSERT INTO mypicks (ticker, date_added) VALUES (%s, %s)
+            ON CONFLICT (ticker) DO UPDATE SET date_added = EXCLUDED.date_added;
+            """,
             (ticker, file_creation_time)
         )
         cur.execute(
