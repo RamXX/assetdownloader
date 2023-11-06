@@ -57,6 +57,8 @@ def market_status(nyse):
     Returns 'open' or 'closed' depending on the NYSE market status right now.
     """
     now = datetime.utcnow() 
+    now = now.replace(tzinfo=pytz.utc)
+
     schedule = nyse.schedule(start_date=now.date(), end_date=now.date())
     
     if schedule.empty:
