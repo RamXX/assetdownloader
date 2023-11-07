@@ -169,6 +169,82 @@ def close_db(conn):
     """
     conn.close()
 
+def get_action_counts(conn, ticker):
+    """ 
+    Returns a list with a 2-item dictionary for 'Added' and 'Removed' counts. 
+    This is to calculate a histogram of inclusion/exclusion of a certain stock.
+    """
+    cur = conn.cursor()
+    
+    query = """
+    SELECT
+        action,
+        COUNT(*) as count
+    FROM
+        mypicks_history
+    WHERE
+        ticker = %s
+    GROUP BY
+        action;
+    """
+    
+    try:
+        cur.execute(query, (ticker,))
+        
+        results = cur.fetchall()
+        
+        action_counts = {}
+        for action, count in results:
+            action_counts[action] = count
+        
+        cur.close()
+        conn.close()
+        
+        return [action_counts]
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        cur.close()
+        return []
+
+
+def get_stock_counts(conn):
+    """ 
+    Rate of Change (ROC) of the number of stocks in the list. Returns a dataframe with the date and the 
+    count for how many stocks were in the mypicks list.
+    """
+    query = """
+    WITH DateSeries AS (
+        SELECT generate_series(
+            (SELECT min(date) FROM mypicks_history),
+            (SELECT max(date) FROM mypicks_history),
+            interval '1 day'
+        ) AS date
+    )
+    SELECT
+        to_char(ds.date, 'YYYY-MM-DD') as date_str,
+        COUNT(m.ticker) AS stock_count
+    FROM
+        DateSeries ds
+    LEFT JOIN
+        mypicks m
+    ON
+        m.date_added <= ds.date AND (m.date_removed > ds.date OR m.date_removed IS NULL)
+    GROUP BY
+        ds.date
+    ORDER BY
+        ds.date;
+    """
+    
+    try:
+        df = pd.read_sql_query(query, conn)
+        df['date'] = pd.to_datetime(df['date_str'])
+        df.drop(columns='date_str', inplace=True)
+        df.set_index('date', inplace=True)
+        return df
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return pd.DataFrame()
+
 
 def process_csv_and_update_db(conn):
     """ 
