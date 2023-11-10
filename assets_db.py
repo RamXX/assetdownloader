@@ -437,9 +437,6 @@ def get_tickers_list(conn, picks='./mypicks.csv', inclusion='./inclusion_list.tx
             WHERE ticker IN ({existing_ticker_str});
         """
         cur.execute(query)
-
-        query = "INSERT INTO ticker_log (log_entry, ticker, added) VALUES (NOW(), %s, %s)"
-        cur.executemany(query, ticker_list)
         cur.close()
         return e
 
