@@ -110,7 +110,6 @@ def init_db():
     try:
         with conn.cursor() as cursor:
             cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
-            print("TimescaleDB extension loaded successfully.")
     except Exception as e:
         print(f"Error: {str(e)}")
         conn.close()
@@ -153,8 +152,7 @@ def init_db():
                     SELECT create_hypertable('stock_data', 'timestamp');
                 """)
                 print("Hypertable stock_data created successfully.")
-            else:
-                print("Hypertable stock_data already exists.")
+            
     except Exception as e:
         print(f"Error: {str(e)}")
         conn.close()
