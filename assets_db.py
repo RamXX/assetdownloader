@@ -264,7 +264,7 @@ def process_csv_and_update_db(conn):
         headers = next(csv_reader)
         tickers_from_csv = {row[0] for row in csv_reader if row[0] != 'Summary'}
 
-    cur.execute("SELECT ticker FROM mypicks WHERE date_removed IS NULL;")
+    cur.execute("SELECT ticker FROM mypicks WHERE date_removed IS NULL OR date_added > date_removed;")
     tickers_from_db = {row[0] for row in cur.fetchall()}
 
     new_tickers = tickers_from_csv - tickers_from_db
@@ -274,7 +274,7 @@ def process_csv_and_update_db(conn):
         cur.execute(
             """
             INSERT INTO mypicks (ticker, date_added) VALUES (%s, %s)
-            ON CONFLICT (ticker) DO UPDATE SET date_added = EXCLUDED.date_added;
+            ON CONFLICT (ticker) DO UPDATE SET date_added = EXCLUDED.date_added, date_removed = NULL;
             """,
             (ticker, file_creation_time)
         )
