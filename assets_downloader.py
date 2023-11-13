@@ -3,7 +3,7 @@ from assets_db import *
 ####### MAIN Fuction ########
 def main():
     print('Initializing the database.')
-    conn = init_db()
+    conn, engine = init_db()
     print('Obtaining list of tickers and dates.')
     tickers = get_tickers_list(conn, picks='./mypicks.csv', inclusion='./inclusion_list.txt', exclusion='./exclusion_list.txt')
     if tickers != []:
@@ -18,7 +18,7 @@ def main():
     else:
         print('Nothing to download. The database is up-to-date.')
 
-    close_db(conn)
+    close_db(conn, engine)
 
 
 # Program Main

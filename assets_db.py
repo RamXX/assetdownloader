@@ -1,6 +1,10 @@
 import pandas as pd 
+from pandas import DataFrame, Series
 import psycopg2
 from psycopg2 import sql
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine.base import Engine
+from typing import List
 import yfinance as yf
 from datetime import datetime
 import pandas_market_calendars as mcal
@@ -152,20 +156,26 @@ def init_db():
                     SELECT create_hypertable('stock_data', 'timestamp');
                 """)
                 print("Hypertable stock_data created successfully.")
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_ticker ON stock_data (ticker);
+                CREATE INDEX IF NOT EXISTS idx_ticker_timestamp ON stock_data (ticker, timestamp);
+            """)
             
     except Exception as e:
         print(f"Error: {str(e)}")
         conn.close()
         quit(1)
-        
-    return conn
+    
+    engine = create_engine(f"postgresql+psycopg2://{dbuser}:{dbpw}@{dbhost}/{dbname}")
+    return conn, engine
 
 
-def close_db(conn):
+def close_db(conn, engine):
     """
     Closes the DB connection. Useful wrapper if we every change the DB.
     """
     conn.close()
+    engine.dispose()
 
 def get_action_counts(conn, ticker):
     """ 
@@ -445,18 +455,32 @@ def get_tickers_list(conn, picks='./mypicks.csv', inclusion='./inclusion_list.tx
     return list(all_tickers)
 
 
-def get_stock_from_db(conn, ticker):
-    query = f"""
-        SELECT timestamp, open, high, low, close, volume
-        FROM stock_data
-        WHERE ticker = '{ticker}'
-        ORDER BY timestamp;
+def get_stocks_from_db(engine: Engine, tickers: List[str], initial_date: str, end_date: str) -> DataFrame:
+    """ 
+    Returns a MultiIndex dataframe with stock information for all tickers requested in the list
+    for the date range selected.
     """
-    df = pd.read_sql(query, conn)
+
+    query = text("""
+        SELECT timestamp, ticker, open, high, low, close, volume
+        FROM stock_data
+        WHERE ticker IN :tickers AND
+              timestamp BETWEEN :initial_date AND :end_date
+        ORDER BY timestamp, ticker;
+    """)
+    df = pd.read_sql(query, engine, params={'tickers': tuple(tickers), 'initial_date': initial_date, 'end_date': end_date})
     df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df.set_index('timestamp', inplace=True)
+    df.set_index(['timestamp', 'ticker'], inplace=True)
 
     return df
+
+def get_single_ticker_from_df(ticker: str, df: DataFrame) -> DataFrame:
+    """ 
+    Extracts a single ticker dataframe from a MultiIndex dataframe.
+    """
+    if not isinstance(df.index, pd.MultiIndex) or ticker not in df.index.get_level_values('ticker').unique().tolist():
+        return
+    return df.xs(ticker, level='ticker')
 
 
 def calculate_downloads(conn, tickers):

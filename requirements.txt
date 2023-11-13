@@ -4,3 +4,4 @@ yfinance
 pyarrow
 python-dotenv
 psycopg2-binary
+sqlalchemy==1.4.50
