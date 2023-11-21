@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 import io
 import pytz
 import csv
+import time
 
 warnings.simplefilter(action='ignore')
 
@@ -545,14 +546,26 @@ def update_db(conn, download_lists):
     """ 
     Download the tickers from YFinance according to the passed lists and updates the DB.
     """
+    max_retries = 3
+    retry_delay = 3  # seconds
     ms = market_status(nyse)
     for item in download_lists:
         start_date = item['date']
         tickers = item['tickers']
-        if (ms == 'closed'): 
-            data = yf.download(tickers, start=start_date)
-        else:
-            data = yf.download(tickers, start=start_date, end=today_str)
+        for attempt in range(max_retries):
+            try:
+                if (ms == 'closed'): 
+                    data = yf.download(tickers, start=start_date)
+                else:
+                    data = yf.download(tickers, start=start_date, end=today_str)
+                break
+            except Exception as e: # yf.download() is buggy, specially for 1000s of tickers, so it's better to do this.
+                print(f"Error downloading {tickers}: {e}")
+                if attempt < max_retries - 1:
+                    print(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    print(f"Failed to download {ticker} after {max_retries} attempts.")
 
         # YFinance returns a MultiIndex dataframe if you download more than 1 ticker, 
         # so we need to account for that (annoying).
