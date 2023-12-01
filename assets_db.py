@@ -546,8 +546,8 @@ def update_db(conn, download_lists):
     """ 
     Download the tickers from YFinance according to the passed lists and updates the DB.
     """
-    max_retries = 3
-    retry_delay = 3  # seconds
+    max_retries = 5
+    retry_delay = 5  # seconds
     ms = market_status(nyse)
     for item in download_lists:
         start_date = item['date']

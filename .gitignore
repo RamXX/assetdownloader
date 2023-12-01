@@ -142,3 +142,4 @@ mypicks*.csv
 inclusion_list.txt
 exclusion_list.txt
 assetdownloader.py
+generate_close.py
